@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Genetics Garden</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+/* Fonts: 'Press Start 2P' for titles/buttons, 'VT323' for readable body text. If offline, the browser falls back to Courier. */
+html,body{margin:0;height:100%;overflow:hidden;background:#4a7a3a;font-family:'VT323','Courier New',monospace;font-size:21px;touch-action:none;user-select:none;-webkit-user-select:none}
+#c{position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.ui{position:fixed;z-index:5}
+button{font-family:'Press Start 2P','Courier New',monospace;font-size:10px;cursor:pointer;background:#ffcc33;border:3px solid #3a2410;border-radius:0;padding:8px 10px;color:#3a2410;box-shadow:0 4px 0 #3a2410;text-transform:uppercase}
+button:hover{background:#ffe066}button:active{transform:translateY(3px);box-shadow:0 1px 0 #3a2410}
+.panel,#toast,#card,#res,#tut,#disc,.slot{background:#f6ead0;border:4px solid #3a2410;border-radius:0;box-shadow:4px 4px 0 #3a2410;color:#3a2410}
+#top{left:8px;top:8px;display:flex;gap:8px}
+#toast{top:10px;left:50%;transform:translateX(-50%);padding:4px 14px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:60vw;text-align:center}
+#hud{bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:10px}
+.slot{width:64px;height:64px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#card{right:10px;top:60px;width:210px;padding:10px;display:none;animation:slide .3s}
+@keyframes slide{from{transform:translateX(240px)}}
+#card h3,#res h2{font-family:'Press Start 2P','Courier New',monospace;font-size:12px;line-height:1.5;margin:0 0 8px}
+.x{float:right;cursor:pointer}
+.dot{display:inline-block;width:18px;height:18px;border-radius:50%;border:2px solid #3a2a18;margin-right:3px;vertical-align:middle}
+#res{left:50%;top:50%;transform:translate(-50%,-50%);padding:16px 24px;text-align:center;display:none;z-index:7;max-width:86vw}
+#res.pop{animation:pop .6s}
+@keyframes pop{0%{transform:translate(-50%,-50%) scale(.3)}60%{transform:translate(-50%,-50%) scale(1.1)}100%{transform:translate(-50%,-50%) scale(1)}}
+.sp{font-size:22px;animation:tw 1s infinite alternate}@keyframes tw{to{opacity:.4}}
+#tut{left:8px;top:60px;width:min(290px,66vw);padding:10px 12px;display:none;z-index:6}
+#tut b{font-family:'Press Start 2P','Courier New',monospace;font-size:11px;line-height:1.5;color:#c0392b}
+#tut .tb{display:flex;gap:8px;align-items:center;margin-top:8px}#tut .tb small{flex:1;font-size:18px}
+#disc{left:50%;bottom:92px;transform:translateX(-50%);width:min(430px,88vw);padding:10px 14px;display:none;z-index:6;text-align:center}
+#disc button{margin-top:6px}
+#joy{left:20px;bottom:20px;width:110px;height:110px;border-radius:50%;background:#ffffff40;border:3px solid #ffffff90;display:none}
+#knob{position:absolute;left:35px;top:35px;width:40px;height:40px;border-radius:50%;background:#ffffffb0}
+#rules{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(0deg,#0b1a2acc 0 3px,#0b1a2ae6 3px 6px)}
+#board{width:min(720px,94vw);max-height:90vh;overflow:auto;background:linear-gradient(#f9efd6,#f1e0b8);border:5px solid #3a2410;box-shadow:0 0 0 4px #c89a5a,8px 8px 0 4px #0006;padding:16px 26px 20px;color:#3a2410;line-height:1.1}
+#board h1{font-family:'Press Start 2P','Courier New',monospace;font-size:20px;text-align:center;color:#c0392b;text-shadow:3px 3px 0 #3a2410;margin:6px 0 10px;line-height:1.4}
+#board h2{font-family:'Press Start 2P','Courier New',monospace;font-size:11px;background:#3a2410;color:#ffcc33;padding:6px 8px;margin:14px 0 6px;display:inline-block}
+#board p,#board li{margin:3px 0}#board ol{padding-left:26px;margin:4px 0}
+#gal{display:flex;flex-direction:column;gap:4px}
+.row{display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap;border-bottom:2px dashed #c89a5a;padding-bottom:4px}
+.row>b{width:78px;font-family:'Press Start 2P','Courier New',monospace;font-size:9px;line-height:1.4;color:#c0392b}
+figure{margin:0;text-align:center;width:96px}figure canvas{image-rendering:pixelated}figcaption{font-size:17px;line-height:1}figcaption small{color:#8a6a3a}
+#welcome{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:rgba(30,55,20,.35)}
+#wbox{width:min(680px,94vw);box-sizing:border-box;background:linear-gradient(#f9efd6,#f1e0b8);border:5px solid #3a2410;box-shadow:0 0 0 4px #c89a5a,8px 8px 0 4px #0006;padding:26px 30px 30px;color:#3a2410;text-align:center}
+#wbox .sm{font-family:'Press Start 2P','Courier New',monospace;font-size:11px;line-height:1.6;color:#3a2410;margin:0}
+#wbox h1{font-family:'Press Start 2P','Courier New',monospace;font-size:clamp(15px,4.4vw,28px);color:#c0392b;text-shadow:3px 3px 0 #3a2410;margin:10px 0 12px;line-height:1.4}
+#wchars{display:flex;justify-content:center;align-items:flex-end;gap:14px;margin:10px 0 6px;min-height:70px}#wchars canvas{animation:wb 1.1s steps(2) infinite alternate}#wchars canvas:nth-child(even){animation-delay:.3s}@keyframes wb{to{transform:translateY(-6px)}}
+#wbox p.tag{font-size:23px;line-height:1.1;margin:6px 0 18px}
+#wbox .btns{display:flex;flex-direction:row;flex-wrap:wrap;gap:16px;justify-content:center}
+#wbox .btns button{font-size:13px;padding:14px 18px;flex:1 1 200px;max-width:260px}
+#wbox .btns button.alt{background:#f6ead0}#wbox .btns button.alt:hover{background:#fff6dc}
+</style></head><body>
+<canvas id="c"></canvas>
+<div class="ui" id="top"><button id="bR">Rules</button><button id="bT">Tutorial</button><button id="bS">Sound: on</button></div>
+<div class="ui" id="toast"></div>
+<div class="ui" id="hud"><div class="slot" id="s0"></div><div class="slot" id="s1"></div></div>
+<div class="ui" id="tut"></div><div class="ui" id="disc">🐝🐞🐱 <b>Heads up, gardener!</b> Cats, ladybugs and bees are zippy little rascals. Move fast to catch them, or they will scoot right past you!<br><button onclick="this.parentNode.style.display='none'">Got it!</button></div><div class="ui" id="card"></div><div class="ui" id="res"></div>
+<div class="ui" id="joy"><div id="knob"></div></div>
+<div id="welcome"><div id="wbox">
+<p class="sm">Welcome to</p>
+<h1>GENETICS GARDEN</h1>
+<div id="wchars"></div>
+<p class="tag">Catch, breed and discover every look of the garden!</p>
+<div class="btns"><button id="wPlay">Play game</button><button id="wRules" class="alt">See rules</button></div>
+</div></div>
+<div id="rules"><div id="board">
+<h1>GENETICS GARDEN</h1>
+<h2>GOAL</h2>
+<p>Breed every look of all six species: pure <b>a</b>, pure <b>b</b> and the mixed hybrid <b>c</b>.</p>
+<h2>HOW TO PLAY</h2>
+<ol>
+<li>Walk around and click any creature to read its gene card.</li>
+<li>Get close and click to pick it up. You have two hands.</li>
+<li>Carry two of the same species into the fenced breeding ground.</li>
+<li>Click that species' stone, stand inside, then click the glowing orb.</li>
+<li>A baby is born! Flowers sprout somewhere in the garden, animals appear by the gate.</li></ol>
+<h2>GENES</h2>
+<p>Every creature has two genes. <b>a</b> is dominant: a pure pair (aa) shows the a look. <b>b</b> is recessive: it shows only as a pure pair (bb). One of each (ab) is a hybrid with the mixed look <b>c</b>. Hybrids can breed again.</p>
+<h2>MEET THE CHARACTERS</h2>
+<div id="gal"></div>
+<h2>CONTROLS</h2>
+<p>WASD / arrows walk · Shift run · click or tap to interact · scroll or pinch to zoom · M sound · R this book</p>
+<p style="text-align:center;margin-top:14px"><button id="go" style="font-size:13px;padding:12px 18px">Start game</button></p>
+</div></div>
+<script>
+'use strict';
+/* ============ 1. SETTINGS (tweak these!) ============ */
+const T=16, N=60, WW=T*N;            // tile size in px, world size in tiles, world size in px
+const PER=12, CAP=260;                // creatures per gene per species at start, garden cap
+const GX=WW/2, GY=WW/2, GR=112, GATE=.2; // breeding-ground centre, radius, half-width of gate (radians)
+const WALK=72, RUN=112;              // player speeds (px/sec). Animals are always slower than WALK.
+const POND={x:190,y:215,rx:74,ry:46};
+const $=id=>document.getElementById(id), rnd=Math.random, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+let seed=11; const sr=()=>(seed=seed*16807%2147483647)/2147483647; // seeded random: scenery is identical every run
+
+/* ============ 2. SPECIES DATA ============ */
+// k = kind: f flower, b bee, l ladybug, t cat.  a/b/c = [name, colour for gene circles]
+const SP=[
+{n:'Lily',k:'f',t:0,a:['Red','#d83a3a'],b:['White','#f4f4f4'],c:['Pink','#f08ab0']},
+{n:'Daisy',k:'f',t:1,a:['White','#f4f4f4'],b:['Yellow','#f0d020'],c:['Light yellow','#f8ec88']},
+{n:'Orchid',k:'f',t:2,a:['Pink','#f06aa8'],b:['Blue','#4a6ae0'],c:['Purple','#9a50d0']},
+{n:'Bee',k:'b',a:['Yellow, black stripes','#f0c020'],b:['Black, yellow stripes','#2a2a30'],c:['All yellow or all black','#c0a020']},
+{n:'Ladybug',k:'l',a:['Red, black spots','#d83030'],b:['Black, red spots','#2a2a30'],c:['All red or all black','#a03030']},
+{n:'Cat',k:'t',a:['Tuxedo','#2a2a35'],b:['Orange','#e08a2e'],c:['Calico','#e8a050']}];
+const VN={b:['All yellow','All black'],l:['All red','All black']}; // the two random looks of a hybrid bee / ladybug
+const gname=c=>{const s=SP[c.sp];return c.g=='c'&&VN[s.k]?VN[s.k][c.v]:s[c.g][0]};
+// Baby chances [a,b,c] for each parent pair (keys are the sorted gene letters)
+const TBL={aa:[1,0,0],bb:[0,1,0],ab:[.25,.25,.5],ac:[.4,0,.6],bc:[0,.4,.6],cc:[.25,.25,.5]};
+const chance=(x,y)=>TBL[[x,y].sort().join('')];
+function kid(x,y){const p=chance(x,y),r=rnd();return r<p[0]?'a':r<p[0]+p[1]?'b':'c'}
+
+/* ============ 3. SPRITE FACTORIES ============
+   Pattern: ONE builder per look. It draws pixels on a tiny offscreen canvas ONCE, then
+   spr() caches it. Fifty lilies all share the same cached picture = fast. */
+function build(w,h,fn){const c=document.createElement('canvas');c.width=w+2;c.height=h+2;const g=c.getContext('2d');g.translate(1,1);fn(g);edge(c);return c}
+// edge(): adds the dark outline by painting every empty pixel that touches a filled pixel
+function edge(c){const g=c.getContext('2d'),W=c.width,H=c.height,d=g.getImageData(0,0,W,H),a=d.data,o=new Uint8ClampedArray(a);
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=(y*W+x)*4;if(a[i+3])continue;
+  for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const X=x+dx,Y=y+dy;if(X<0||Y<0||X>=W||Y>=H)continue;
+   if(a[(Y*W+X)*4+3]){o[i]=34;o[i+1]=24;o[i+2]=30;o[i+3]=255;break}}}
+ d.data.set(o);g.putImageData(d,0,0)}
+// pix(): draws a sprite from text rows; each letter is a colour in the palette (like paint-by-numbers)
+function pix(rows,pal){return build(rows[0].length,rows.length,g=>rows.forEach((r,y)=>[...r].forEach((ch,x)=>{if(pal[ch]){g.fillStyle=pal[ch];g.fillRect(x,y,1,1)}})))}
+function blob(g,cx,cy,rx,ry,col){g.fillStyle=col;for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++)if(x*x/(rx*rx)+y*y/(ry*ry)<=1)g.fillRect(Math.round(cx+x),Math.round(cy+y),1,1)}
+
+// p petal, m middle, g stem, h leaf
+const FL=[["p....pp....p","pp..pppp..pp",".pppmmmmppp.","..pppmmppp..","...pppppp...",".....pp....."],
+ ["...pp..pp...","..pppppppp..","..ppmmmmpp..","..ppmmmmpp..","..pppppppp..","...pp..pp..."],
+ ["..pp....pp..",".pppp..pppp.",".pppppppppp.","..pppmmppp..","...pp..pp..."]];
+const STEM=[".....gg.....","..hh.gg.....","..hhhgg.....",".....ggghh..",".....gghhh..",".....gg.....",".....gg....."];
+const BEE=[["..ww.....","..ww.....",".bsbsbb..","bbsbsbbk.",".bsbsbb..","........."],[".........",".........",".bsbsbb..","bbsbsbbk.",".bsbsbb..","..w.w...."]];
+const LB=[["..bbbbb...",".bbsbbsbb.","bbbbbbbbbh","bsbbsbbsbh",".bbbbbbbb.","l.l.l.l.l."],["..bbbbb...",".bbsbbsbb.","bbbbbbbbbh","bsbbsbbsbh",".bbbbbbbb.",".l.l.l.l.l"]];
+const CAT=[["..........h..h","..........hhhh","t.........hkhk","t.bbbbbbbbhzzz","tbbbbbbbbbcc..",".tbbbbbbbbcc..","..bbbbbbbbbb..","..l.l....l.l..","..p.p....p.p.."],
+ ["..........h..h","..........hhhh","t.........hkhk","t.bbbbbbbbhzzz","tbbbbbbbbbcc..",".tbbbbbbbbcc..","..bbbbbbbbbb..","...l.l..l.l...","...p.p..p.p..."]];
+const W_='#f4f0e6',BK='#2a2a35',OR='#e08a2e',EY='#9fe870';
+const CATP={a:{h:BK,b:BK,t:BK,l:BK,c:W_,p:W_,z:W_,k:EY},b:{h:OR,b:OR,t:OR,l:OR,c:'#f6c070',p:'#f6c070',z:'#f6c070',k:EY},
+ c:{h:BK,t:BK,b:OR,l:OR,c:W_,p:W_,z:W_,k:EY}}; // calico: black head+tail, orange body, white chest/blaze/paws
+const PL=["...hhhh...","..hhhhhh..",".hhhhhhhh.","..ssssss..","..sksskss.","..ssssss..","..gggggg..",".gggggggg.",".sgggggs..","..oooooo.."];
+const LEG=[["..oo..oo..","..bb..bb.."],["...oo.oo..","...bb.bb.."],["....oooo..","....bbbb.."],["..oo.oo...","..bb.bb..."]];
+
+const cache={};
+function spr(si,g,v,f){if(SP[si].k!='b'&&SP[si].k!='l')v=0;const key=si+g+v+f;return cache[key]||(cache[key]=make(si,g,v,f))}
+function make(si,g,v,f){const s=SP[si];
+ if(s.k=='f'){const mid=s.t==1?(g=='b'?'#a06a10':'#e8b820'):s.t==0?'#f0d060':'#fff2a0';
+  return pix([...FL[s.t],...STEM],{p:s[g][1],m:mid,g:'#3c8a3c',h:'#6cc05a'})}
+ if(s.k=='b'){const Y='#f0c020',K='#2a2a30',[b,st]=g=='a'?[Y,K]:g=='b'?[K,Y]:v?[K,K]:[Y,Y];return pix(BEE[f],{b,s:st,w:'#d8ecff',k:'#fff'})}
+ if(s.k=='l'){const R='#d83030',K='#2a2a30',[b,sp]=g=='a'?[R,K]:g=='b'?[K,R]:v?[K,K]:[R,R];return pix(LB[f],{b,s:sp,h:K,l:'#222'})}
+ return pix(CAT[f],CATP[g])}
+const playerSpr=f=>cache['P'+f]||(cache['P'+f]=pix([...PL,...LEG[f]],{h:'#e8c868',s:'#f2c8a0',k:'#222',g:'#4a9a58',o:'#4a6aa8',b:'#5a3a22'}));
+
+// Scenery builders (one per type, placed many times in loops below)
+const TREE=build(34,44,g=>{g.fillStyle='#6b4a2a';g.fillRect(14,28,6,14);g.fillStyle='#4e3520';g.fillRect(17,28,3,14);
+ blob(g,17,15,15,13,'#2a6a32');blob(g,10,22,9,8,'#2f7a38');blob(g,24,22,9,8,'#2f7a38');blob(g,14,10,8,6,'#4a9a48');blob(g,22,14,5,4,'#58aa50');
+ for(let i=0;i<70;i++){const x=4+sr()*26|0,y=3+sr()*26|0;if(((x-17)/15)**2+((y-15)/13)**2<.8){g.fillStyle=y>16?'#245a2c':'#68b85a';g.fillRect(x,y,1,1)}}}); // dither dots = soft shading
+const BUSH=build(18,11,g=>{blob(g,9,6,8,5,'#3a8a3c');blob(g,6,5,4,3,'#56a850');g.fillStyle='#f06aa8';g.fillRect(12,4,1,1);g.fillRect(5,7,1,1);g.fillRect(9,3,1,1)});
+const ROCK=build(14,9,g=>{blob(g,7,5,6,4,'#8a8a90');blob(g,5,4,3,2,'#b0b0b6')});
+const BENCH=build(28,14,g=>{g.fillStyle='#8a5a2a';g.fillRect(0,0,28,3);g.fillStyle='#a8743a';g.fillRect(0,4,28,5);g.fillStyle='#5a3a1e';g.fillRect(2,9,3,4);g.fillRect(23,9,3,4)});
+const POST=build(5,12,g=>{g.fillStyle='#9a6a34';g.fillRect(0,0,5,12);g.fillStyle='#c89a5a';g.fillRect(0,0,5,2)});
+const ARCH=build(44,34,g=>{g.fillStyle='#9a6a34';g.fillRect(2,8,4,26);g.fillRect(38,8,4,26);
+ for(let x=2;x<42;x++)g.fillRect(x,Math.round(10-8*Math.sin((x-2)/40*Math.PI)),1,4);
+ const C=['#f06aa8','#fff','#f0d020','#d83a3a'];for(let i=0;i<40;i++){const x=2+i,y=Math.round(10-8*Math.sin(i/40*Math.PI))+(i%3);g.fillStyle=i%4==0?'#3c8a3c':C[i%4];g.fillRect(x,y,2,2)}
+ for(let y=10;y<30;y+=3){g.fillStyle=C[y%4];g.fillRect(1,y,2,2);g.fillRect(41,y+1,2,2)}});
+const ORB=build(12,18,g=>{g.fillStyle='#8a8a96';g.fillRect(2,11,8,7);g.fillStyle='#b0b0bc';g.fillRect(1,10,10,2);blob(g,6,5,5,5,'#9ae8ff');blob(g,4,3,2,2,'#fff')});
+const STONE=build(16,8,g=>{blob(g,8,4,7,3,'#9a9aa2');blob(g,6,3,3,1,'#c0c0c8')});
+const SIGN=build(120,54,g=>{g.fillStyle='#8a5a2a';g.fillRect(20,46,6,8);g.fillRect(94,46,6,8);g.fillStyle='#a8743a';g.fillRect(0,0,120,46);g.fillStyle='#f3e3b8';g.fillRect(3,3,114,40)}); // sign board: 120x54 px
+
+/* ============ 4. WORLD ============ */
+const solids=[],SC=[],cs=[],sparks=[];            // solid circles [x,y,r], scenery, creatures, sparkles
+const addSolid=(x,y,r)=>solids.push([x,y,r]);
+for(let i=0;i<5;i++)addSolid(POND.x-50+i*25,POND.y,30); // the pond is a row of solid circles
+function free(x,y,m=0){ // is this a natural spot? (not in ground, path, pond, or near solids)
+ if(x<20||y<20||x>WW-20||y>WW-20||Math.hypot(x-GX,y-GY)<GR+24+m)return false;
+ if(Math.abs(x-GX)<26&&y>GY)return false;
+ if(x>GX&&Math.abs(y-(GY+GR+90))<16)return false;
+ if(((x-POND.x)/(POND.rx+8))**2+((y-POND.y)/(POND.ry+8))**2<1)return false;
+ return !solids.some(s=>Math.hypot(x-s[0],y-s[1])<s[2]+10+m)}
+function spot(){for(let i=0;i<300;i++){const x=24+rnd()*(WW-48),y=24+rnd()*(WW-48);if(free(x,y))return[x,y]}return[40,40]}
+const nearGate=()=>[GX+(rnd()-.5)*50,GY+GR+16+rnd()*18];
+
+// Fence: a ring of posts with a gap at the south (gate). Posts are scenery AND solid.
+for(let a=0;a<Math.PI*2;a+=14/GR){const d=Math.abs(((a-Math.PI/2+3*Math.PI)%(2*Math.PI))-Math.PI);if(d<GATE+.02)continue;
+ const x=GX+Math.cos(a)*GR,y=GY+Math.sin(a)*GR;SC.push({img:POST,x,y,sh:3});addSolid(x,y,6)}
+SC.push({img:ARCH,x:GX,y:GY+GR+4,sh:0});addSolid(GX-18,GY+GR+1,3);addSolid(GX+18,GY+GR+1,3);
+SC.push({img:BENCH,x:GX-70,y:GY+GR+30,sh:12});addSolid(GX-78,GY+GR+28,5);addSolid(GX-62,GY+GR+28,5);
+for(let i=0;i<46;i++){const x=sr()*WW,y=sr()*WW;if(free(x,y,6)){SC.push({img:TREE,x,y,sh:13,sw:1});addSolid(x,y-1,6)}}
+for(let i=0;i<40;i++){const x=sr()*WW,y=sr()*WW;if(free(x,y,2))SC.push({img:BUSH,x,y,sh:8,sw:1})}
+for(let i=0;i<28;i++){const x=sr()*WW,y=sr()*WW;if(free(x,y,2)){SC.push({img:ROCK,x,y,sh:7});addSolid(x,y-2,5)}}
+
+const ground=(()=>{ // pre-rendered ground layer: drawn ONCE, then just blitted
+ const c=document.createElement('canvas');c.width=c.height=WW;const g=c.getContext('2d');
+ const G=['#6aa84f','#68a64d','#6eac53','#63a049'];
+ for(let y=0;y<N;y++)for(let x=0;x<N;x++){g.fillStyle=G[sr()*4|0];g.fillRect(x*T,y*T,T,T)}
+ for(let i=0;i<260;i++)blob(g,sr()*WW,sr()*WW,4+sr()*10|0,3+sr()*6|0,sr()<.5?'rgba(255,240,150,.12)':'rgba(30,80,40,.14)'); // light/dark patches
+ for(let i=0;i<5000;i++){g.fillStyle=sr()<.5?'#78b85c':'#58903f';g.fillRect(sr()*WW|0,sr()*WW|0,1,1)} // dither
+ for(let i=0;i<700;i++){const x=sr()*WW|0,y=sr()*WW|0;g.fillStyle='#3f7a35';g.fillRect(x,y,1,3);g.fillRect(x+2,y+1,1,2)} // tufts
+ const FC=['#fff','#f0d020','#f06aa8','#d83a3a'];for(let i=0;i<260;i++){g.fillStyle=FC[i%4];g.fillRect(sr()*WW|0,sr()*WW|0,2,2)} // tiny flowers
+ blob(g,POND.x,POND.y,POND.rx+3,POND.ry+3,'#2a5a3a');blob(g,POND.x,POND.y,POND.rx,POND.ry,'#2f6fb0');blob(g,POND.x-8,POND.y-6,POND.rx-16,POND.ry-12,'#3c82c4');
+ [[160,205],[215,225],[185,235]].forEach(p=>blob(g,p[0],p[1],6,3,'#3a9a48')); // lily pads
+ blob(g,GX,GY,GR-3,GR-3,'#c9a96e');for(let i=0;i<2500;i++){const a=sr()*6.28,r=Math.sqrt(sr())*(GR-6);g.fillStyle=sr()<.5?'#b8975c':'#d8bc84';g.fillRect(GX+Math.cos(a)*r|0,GY+Math.sin(a)*r|0,1,1)}
+ g.fillStyle='#c9a96e'; // dirt path south from the gate + a branch east
+ for(let y=GY+GR-10;y<WW;y+=2)g.fillRect(GX-11+Math.round(Math.sin(y/30)*3),y,22,2);
+ for(let x=GX;x<WW;x+=2)g.fillRect(x,GY+GR+81+Math.round(Math.sin(x/25)*3),2,18);
+ for(let y=GY+GR;y<WW;y+=13)blob(g,GX+Math.round(Math.sin(y/30)*3)+(y%2?-4:4),y,4,2,'#9a9aa2'); // stepping stones
+ g.strokeStyle='#c89a5a';g.lineWidth=2;[4,9].forEach(o=>{g.beginPath();g.arc(GX,GY-o,GR,Math.PI/2+GATE,Math.PI*2.5-GATE);g.stroke()}); // fence rails
+ return c})();
+
+/* ============ 5. CREATURES, PLAYER, STATE ============ */
+const SPD={b:34,l:15,t:48,f:0}; // animal speeds, all below WALK (cat flee = 58*1.15 = 66.7)
+const mkc=(si,g,x,y)=>({sp:si,g,k:SP[si].k,x,y,v:rnd()<.5?1:0,tx:x,ty:y,wt:rnd()*3,ph:rnd()*6,face:1,held:null,age:9,mv:0,spd:SPD[SP[si].k]});
+for(let si=0;si<6;si++)for(const g of['a','b'])for(let i=0;i<PER;i++){const[x,y]=spot();cs.push(mkc(si,g,x,y))}
+const P={x:GX,y:GY+GR+50,face:1,mv:0};
+let hand=[null,null],sel=-1,signMsg='',signT=0,T0=0,paused=true,started=false,zoom=1,sc=2,dpr=1,cam={x:GX-200,y:GY+60},vw=1,vh=1;
+const keys={},joy={x:0,y:0};
+const IX=i=>GX-60+i*24,IY=GY+48; // positions of the six species stones
+
+/* ============ 6. UI HELPERS ============ */
+let tt,rt;
+function msg(m){const t=$('toast');t.textContent=m;t.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>t.style.opacity=0,2800);signMsg=m;signT=5}
+function portrait(c,k=4){const im=spr(c.sp,c.g,c.v,0),cn=document.createElement('canvas');cn.width=im.width*k;cn.height=im.height*k;const x=cn.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(im,0,0,cn.width,cn.height);cn.style.imageRendering='pixelated';return cn}
+const dots=(si,g)=>(g=='a'?'aa':g=='b'?'bb':'ab').split('').map(ch=>`<i class="dot" style="background:${SP[si][ch][1]}"></i>`).join('');
+const EX={a:'Both genes are a. The dominant look always shows.',b:'Both genes are b. With no a to cover it, the recessive look shows.',c:'One a and one b. Neither fully wins, so the mixed look c appears.'};
+function showCard(c){const s=SP[c.sp],k=$('card');
+ k.innerHTML=`<b class="x" onclick="this.parentNode.style.display='none'">×</b><h3>${gname(c)} ${s.n}</h3><div id="pt"></div><p>${dots(c.sp,c.g)} <small>${c.g=='c'?'Hybrid (ab)':'Pure ('+c.g+c.g+')'}</small></p><p>a dominant = ${s.a[0]}<br>b recessive = ${s.b[0]}</p><small>${EX[c.g]}</small>`;
+ $('pt').appendChild(portrait(c));k.style.display='block';k.style.animation='none';void k.offsetWidth;k.style.animation=''}
+function hud(){[0,1].forEach(i=>{const s=$('s'+i);s.innerHTML='';if(hand[i])s.appendChild(portrait(hand[i],3));else s.innerHTML='<small style="color:#8a6a3a">empty</small>';s.onclick=()=>putDown(i)})}
+function showResult(a,b,k,where){const r=$('res'),s=SP[k.sp],GEN={a:'aa',b:'bb',c:'ab'};
+ r.innerHTML=`<div class="sp">✨ ✨ ✨</div><h2>A ${gname(k)} ${s.n} was born!</h2><div><span id="r1"></span> + <span id="r2"></span> = <span id="r3"></span></div><p>${dots(k.sp,a.g)} × ${dots(k.sp,b.g)} → ${dots(k.sp,k.g)}</p><p>New genes: <b>${GEN[k.g]}</b><br>a dominant = ${s.a[0]} · b recessive = ${s.b[0]}</p><p><i>${where}.</i></p>`;
+ [a,b,k].forEach((c,i)=>$('r'+(i+1)).appendChild(portrait(c,3)));
+ r.style.display='block';r.classList.remove('pop');void r.offsetWidth;r.classList.add('pop');clearTimeout(rt);rt=setTimeout(()=>r.style.display='none',7000)}
+function spark(x,y,n){for(let i=0;i<n;i++)sparks.push({x,y,vx:(rnd()-.5)*40,vy:-rnd()*40,l:1,c:i%2?'#fff6a0':'#fff'})}
+
+/* ============ 7. GAME ACTIONS ============ */
+function putDown(i){const c=hand[i];if(!c)return;hand[i]=null;c.held=null;let x=P.x+(i?12:-12),y=P.y+8;
+ const d=Math.hypot(x-GX,y-GY)||1;if(c.k=='f'&&d<GR+8){x=GX+(x-GX)/d*(GR+10);y=GY+(y-GY)/d*(GR+10)} // flowers never planted inside the fence
+ c.x=c.tx=x;c.y=c.ty=y;hud();msg('Put down '+SP[c.sp].n)}
+function breed(){
+ if(sel<0)return msg('Click a species stone first');
+ const[a,b]=hand;
+ if(!a||!b)return msg('Pick up two creatures first');
+ if(a.sp!=sel||b.sp!=sel)return msg('Both must be a '+SP[sel].n);
+ if(Math.hypot(P.x-GX,P.y-GY)>GR-10)return msg('Stand inside the breeding ground');
+ if(cs.length>=CAP)return msg('The garden is full!');
+ const baby=mkc(sel,kid(a.g,b.g),0,0),flower=SP[sel].k=='f';
+ [baby.x,baby.y]=flower?spot():nearGate();baby.tx=baby.x;baby.ty=baby.y;baby.age=0;cs.push(baby);spark(baby.x,baby.y-6,24);
+ [a,b].forEach(p=>{p.held=null;[p.x,p.y]=nearGate();p.tx=p.x;p.ty=p.y}); // parents go back to the gate
+ hand=[null,null];hud();showResult(a,b,baby,flower?'It sprouted somewhere in the garden':'It appeared near the gate')}
+// pick(): what is under this world point? Generous aim-assist (about 26 screen px)
+function pick(wx,wy){const aim=34/(sc/dpr);
+ for(let i=0;i<2;i++)if(hand[i]&&Math.hypot(wx-(P.x+(i?12:-12)),wy-(P.y-14))<aim)return{t:'held',i};
+ if(Math.hypot(wx-GX,wy-(GY-2))<aim)return{t:'orb'};
+ for(let i=0;i<6;i++)if(Math.hypot(wx-IX(i),wy-(IY-3))<aim*.8)return{t:'icon',i};
+ let best=null,bd=aim;for(const c of cs){if(c.held!=null)continue;const d=Math.hypot(wx-c.x,wy-(c.y-(c.k=='b'?10:5)));if(d<bd){bd=d;best=c}}
+ return best?{t:'c',c:best}:null}
+const toW=(cx,cy)=>[cam.x+cx*dpr/sc,cam.y+cy*dpr/sc];
+function click(cx,cy){const p=pick(...toW(cx,cy));if(!p)return;
+ if(p.t=='held')return putDown(p.i);
+ if(p.t=='orb')return breed();
+ if(p.t=='icon'){sel=p.i;return msg('Selected: '+SP[p.i].n)}
+ const c=p.c;showCard(c);
+ if(Math.hypot(P.x-c.x,P.y-c.y)<52){const i=hand.indexOf(null);if(i<0)return msg('Both hands are full');c.held=i;hand[i]=c;hud();msg(`Picked ${SP[c.sp].n} (${hand.filter(Boolean).length}/2)`)}
+ else msg('Walk a little closer to pick it up')}
+
+/* ============ 8. UPDATE ============ */
+const blocked=(x,y)=>solids.some(s=>Math.hypot(x-s[0],y-s[1])<s[2]+3);
+function update(dt){
+ // player: keyboard + joystick, test X and Y separately so we slide along obstacles
+ let ix=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+joy.x,iy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+joy.y;
+ const m=Math.hypot(ix,iy);if(m>1){ix/=m;iy/=m}
+ const sp=(keys.shift||m>.95&&joy.x*joy.x+joy.y*joy.y>.9?RUN:WALK)*Math.min(1,m);
+ P.mv=m>.05;if(P.mv){const nx=P.x+ix/m*sp*dt,ny=P.y+iy/m*sp*dt;if(!blocked(nx,P.y))P.x=nx;if(!blocked(P.x,ny))P.y=ny;if(ix)P.face=ix>0?1:-1}
+ P.x=clamp(P.x,8,WW-8);P.y=clamp(P.y,8,WW-8);
+ for(const c of cs){if(c.age<9)c.age+=dt;if(c.held!=null||c.k=='f')continue;
+  const dx=c.x-P.x,dy=c.y-P.y,d=Math.hypot(dx,dy)||1;let vx=0,vy=0,s=0;
+  if(d<44){vx=dx/d;vy=dy/d;s=c.spd*.85}                // run away from the player (3.5 tiles)
+  else{c.wt-=dt;if(c.wt<=0){c.wt=1+rnd()*3;c.tx=c.x+(rnd()-.5)*120;c.ty=c.y+(rnd()-.5)*120}
+   const ex=c.tx-c.x,ey=c.ty-c.y,e=Math.hypot(ex,ey);if(e>3){vx=ex/e;vy=ey/e;s=c.spd*.5}} // amble to a random target
+  c.mv=s>0;c.x=clamp(c.x+vx*s*dt,10,WW-10);c.y=clamp(c.y+vy*s*dt,10,WW-10);if(vx)c.face=vx>0?1:-1;
+  const gx=c.x-GX,gy=c.y-GY,gd=Math.hypot(gx,gy);if(gd<GR+8){c.x=GX+gx/gd*(GR+8);c.y=GY+gy/gd*(GR+8)}} // creatures can't enter the fence
+ for(let i=sparks.length-1;i>=0;i--){const s=sparks[i];s.x+=s.vx*dt;s.y+=s.vy*dt;s.vy+=50*dt;if((s.l-=dt)<=0)sparks.splice(i,1)}
+ if(signT>0)signT-=dt;
+ const tx=clamp(P.x-vw/2,0,Math.max(0,WW-vw)),ty=clamp(P.y-vh/2,0,Math.max(0,WW-vh)); // smooth camera, clamped to the world
+ cam.x+=(tx-cam.x)*Math.min(1,dt*5);cam.y+=(ty-cam.y)*Math.min(1,dt*5)}
+
+/* ============ 9. RENDER ============ */
+function drawSpr(it){ // shadow + sprite, anchored at its bottom centre
+ const im=it.img,w=im.width,h=im.height,x=Math.round(it.x),y=Math.round(it.y-(it.z||0));
+ if(it.sh){ctx.fillStyle='rgba(30,20,10,.28)';ctx.beginPath();ctx.ellipse(x,Math.round(it.y),it.sh,it.sh*.4,0,0,6.3);ctx.fill()}
+ ctx.save();ctx.translate(x,y);if(it.flip)ctx.scale(-1,1);if(it.s&&it.s!=1)ctx.scale(it.s,it.s);
+ if(it.sw){const o=Math.round(Math.sin(T0*1.6+it.x*.05)*it.sw),hh=h>>1; // wind sway: shift only the top half by a whole pixel
+  ctx.drawImage(im,0,0,w,hh,-w/2+o,-h,w,hh);ctx.drawImage(im,0,hh,w,h-hh,-w/2,-h+hh,w,h-hh)}else ctx.drawImage(im,-w/2,-h);
+ ctx.restore()}
+const cimg=c=>spr(c.sp,c.g,c.v,c.k=='b'?Math.floor(T0*14+c.ph)%2:c.k=='f'?0:c.mv?Math.floor(T0*8+c.ph)%2:0);
+function render(){
+ sc=Math.max(1,Math.round(zoom*2*dpr));vw=cv.width/sc;vh=cv.height/sc;
+ ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#4a7a3a';ctx.fillRect(0,0,cv.width,cv.height);
+ ctx.setTransform(sc,0,0,sc,-Math.round(cam.x*sc),-Math.round(cam.y*sc));ctx.imageSmoothingEnabled=false;
+ const sx=Math.max(0,Math.floor(cam.x)),sy=Math.max(0,Math.floor(cam.y)),sw=Math.min(WW-sx,Math.ceil(vw)+2),sh=Math.min(WW-sy,Math.ceil(vh)+2);
+ ctx.drawImage(ground,sx,sy,sw,sh,sx,sy,sw,sh); // only the visible part of the ground
+ ctx.lineWidth=1;for(let i=0;i<3;i++){const p=(T0*.3+i/3)%1; // pond ripples
+  ctx.strokeStyle=`rgba(255,255,255,${.4*(1-p)})`;ctx.beginPath();ctx.ellipse(POND.x-30+i*30,POND.y+(i-1)*8,p*28,p*14,0,0,6.3);ctx.stroke()}
+ const L=[],vis=(x,y)=>x>cam.x-40&&x<cam.x+vw+40&&y>cam.y-10&&y<cam.y+vh+70;
+ for(const s of SC)if(vis(s.x,s.y))L.push(s);
+ for(const c of cs){if(c.held!=null||!vis(c.x,c.y))continue;
+  L.push({img:cimg(c),x:c.x,y:c.y,flip:c.face<0,sh:c.k=='b'?3:c.k=='f'?3:5,z:c.k=='b'?9+Math.sin(T0*5+c.ph)*2:0,sw:c.k=='f'?1:0,s:Math.min(1,.3+c.age*1.75)})}
+ L.push({img:playerSpr(P.mv?Math.floor(T0*10)%4:0),x:P.x,y:P.y,flip:P.face<0,sh:6});
+ hand.forEach((c,i)=>{if(c)L.push({img:cimg(c),x:P.x+(i?12:-12),y:P.y+1,z:14+Math.sin(T0*4+i*2)*2,flip:P.face<0,sh:0})}); // carried creatures float beside the player
+ L.push({img:ORB,x:GX,y:GY+10,sh:7,fn:it=>{ctx.fillStyle=`rgba(150,230,255,${.25+.15*Math.sin(T0*3)})`;ctx.beginPath();ctx.arc(GX,GY-2,11,0,6.3);ctx.fill();drawSpr(it)}});
+ SP.forEach((s,i)=>L.push({y:IY,fn:()=>{drawSpr({img:STONE,x:IX(i),y:IY,sh:0});drawSpr({img:spr(i,'a',0,0),x:IX(i),y:IY-2,sh:0});
+  if(sel==i){ctx.strokeStyle='#ffd84a';ctx.beginPath();ctx.ellipse(IX(i),IY,9,5,0,0,6.3);ctx.stroke()}}}));
+ L.push({y:GY-24,fn:()=>{drawSpr({img:SIGN,x:GX,y:GY-24,sh:0});ctx.fillStyle='#4a3010';ctx.font="10px VT323,'Courier New',monospace";
+  const nm=hand.filter(Boolean).map(gname).join(', ')||'-',two=hand[0]&&hand[1],ch=two&&hand[0].sp==hand[1].sp?chance(hand[0].g,hand[1].g):0,
+   hint=sel<0?'1) click a stone':!two?'2) pick up two':'3) click the orb';
+  [sel<0?'Pick a species stone':'Species: '+SP[sel].n,'Hand: '+nm.slice(0,22),ch?`a ${ch[0]*100}% b ${ch[1]*100}% c ${ch[2]*100}%`:'Chances show here',signT>0?signMsg.slice(0,26):hint]
+   .forEach((t,i)=>ctx.fillText(t,GX-55,GY-79+10+i*10,112))}});
+ L.sort((a,b)=>a.y-b.y);for(const it of L)it.fn?it.fn(it):drawSpr(it); // y-sorting: bigger y draws on top
+ if(tutStep>=1&&tutStep<=2)tutC.forEach(c=>{if(c.held==null&&cs.includes(c))arrow(c.x,c.y-22)}); // bouncing tutorial arrows
+ if(tutStep==4){arrow(IX(0),IY-14);arrow(GX,GY-22)}
+ for(const s of sparks){ctx.fillStyle=s.c;ctx.globalAlpha=Math.max(0,s.l);ctx.fillRect(Math.round(s.x),Math.round(s.y),1,1)}ctx.globalAlpha=1;
+ ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='rgba(255,200,120,.08)';ctx.fillRect(0,0,cv.width,cv.height)} // gentle warm daytime tint
+
+/* ============ 10. LOOP, INPUT, AUDIO ============ */
+const cv=$('c'),ctx=cv.getContext('2d');let last=0;
+function resize(){dpr=window.devicePixelRatio||1;cv.width=innerWidth*dpr;cv.height=innerHeight*dpr}
+addEventListener('resize',resize);resize();
+function frame(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;if(!paused){T0+=dt;update(dt)}render();requestAnimationFrame(frame)}
+addEventListener('keydown',e=>{startAudio();const k=e.key.toLowerCase();if(k=='r'){if($('welcome').style.display!='none')return;rules(true)}else if(k=='m')toggleSound();keys[k]=true;if(k.startsWith('arrow')||k==' ')e.preventDefault()});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+const ptr=new Map();let pinch0=0,z0=1;
+cv.addEventListener('pointerdown',e=>{startAudio();cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY});
+ if(ptr.size==2){const[a,b]=[...ptr.values()];pinch0=Math.hypot(a.x-b.x,a.y-b.y);z0=zoom;ptr.forEach(p=>p.multi=1)}});
+cv.addEventListener('pointermove',e=>{const p=ptr.get(e.pointerId);
+ if(p){p.x=e.clientX;p.y=e.clientY;if(ptr.size==2){const[a,b]=[...ptr.values()];zoom=clamp(z0*Math.hypot(a.x-b.x,a.y-b.y)/pinch0,1,3)}}
+ cv.style.cursor=!paused&&pick(...toW(e.clientX,e.clientY))?'pointer':'default'}); // hand cursor over clickables
+cv.addEventListener('pointerup',e=>{const p=ptr.get(e.pointerId);ptr.delete(e.pointerId);if(p&&!p.multi&&!paused&&Math.hypot(p.x-p.x0,p.y-p.y0)<10)click(e.clientX,e.clientY)});
+cv.addEventListener('wheel',e=>{e.preventDefault();zoom=clamp(zoom*(e.deltaY<0?1.1:.9),1,3)},{passive:false});
+// touch joystick
+const joyEl=$('joy'),knob=$('knob');if(navigator.maxTouchPoints>0)joyEl.style.display='block';
+function jmove(t){const r=joyEl.getBoundingClientRect();let dx=(t.clientX-r.left-r.width/2)/(r.width/2),dy=(t.clientY-r.top-r.height/2)/(r.height/2);const m=Math.hypot(dx,dy);if(m>1){dx/=m;dy/=m}joy.x=dx;joy.y=dy;knob.style.transform=`translate(${dx*30}px,${dy*30}px)`}
+joyEl.addEventListener('touchstart',e=>{e.preventDefault();startAudio();jmove(e.touches[0])},{passive:false});
+joyEl.addEventListener('touchmove',e=>{e.preventDefault();jmove(e.touches[0])},{passive:false});
+joyEl.addEventListener('touchend',()=>{joy.x=joy.y=0;knob.style.transform=''});
+// rulebook
+(()=>{const gal=$('gal'),row=n=>{const r=document.createElement('div');r.className='row';r.innerHTML=`<b>${n}</b>`;gal.appendChild(r);return r},
+ big=im=>{const cn=document.createElement('canvas');cn.width=im.width*3;cn.height=im.height*3;const x=cn.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(im,0,0,cn.width,cn.height);return cn},
+ fig=(cn,t)=>{const f=document.createElement('figure');f.appendChild(cn);f.insertAdjacentHTML('beforeend',`<figcaption>${t}</figcaption>`);return f};
+ SP.forEach((s,i)=>{const r=row(s.n);(VN[s.k]?[['a',0],['b',0],['c',0],['c',1]]:[['a',0],['b',0],['c',0]]).forEach(([g,v])=>r.appendChild(fig(big(spr(i,g,v,0)),`${gname({sp:i,g,v})}<br><small>gene ${g}</small>`)))});
+ const r=row('Garden');r.appendChild(fig(big(STONE),'Species stone<br><small>pick a species</small>'));r.appendChild(fig(big(ORB),'Glowing orb<br><small>click to breed</small>'))})();
+function rules(open){$('rules').style.display=open?'flex':'none';paused=open;$('go').textContent=started?'Resume game':'Start game'}
+$('go').onclick=()=>{const first=!started;started=true;startAudio();rules(false);if(first)tutStart()};$('bR').onclick=()=>rules(true);
+// audio (Web Audio, no files). Starts only after a user action.
+let AC,master,sndOn=true,beat=0;const CH=[[48,52,55],[43,47,50],[45,48,52],[41,45,48]],PENT=[72,74,76,79,81]; // C G Am F pad, C-major pentatonic tune
+function startAudio(){if(AC)return;AC=new(window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.gain.value=sndOn?.6:0;master.connect(AC.destination);
+ const len=AC.sampleRate*2,buf=AC.createBuffer(1,len,AC.sampleRate),d=buf.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1; // wind = filtered noise
+ const n=AC.createBufferSource();n.buffer=buf;n.loop=true;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=400;const gw=AC.createGain();gw.gain.value=.05;
+ const lfo=AC.createOscillator(),lg=AC.createGain();lfo.frequency.value=.12;lg.gain.value=200;lfo.connect(lg);lg.connect(f.frequency);lfo.start();
+ n.connect(f);f.connect(gw);gw.connect(master);n.start();setInterval(tick,600)}
+function tone(m,dur,vol,type){const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime;o.type=type;o.frequency.value=440*Math.pow(2,(m-69)/12);
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+dur*.3);g.gain.linearRampToValueAtTime(0,t+dur);o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.1)}
+function tick(){if(!sndOn)return;if(beat%8==0)CH[(beat/8)%4].forEach(m=>tone(m,5,.06,'triangle'));if(Math.random()<.55)tone(PENT[Math.random()*5|0],1.2,.05,'sine');beat++}
+function toggleSound(){sndOn=!sndOn;if(master)master.gain.value=sndOn?.6:0;$('bS').textContent='Sound: '+(sndOn?'on':'off')}
+$('bS').onclick=toggleSound;
+/* ---- Tutorial: walks the player through breeding two Lilies. Each step has a Next button. ---- */
+let tutStep=-1,tutC=[],dcT;
+const TUT=[['Welcome, gardener!','Let us breed two Lilies. Walk with WASD / arrows (or the joystick). Two lilies are waiting just outside the gate.'],
+['Read a gene card','Click the RED lily. A gene card slides in: red is the dominant gene (a). Then click the WHITE lily: white is the recessive gene (b).'],
+['Pick them up','Walk close to each lily and click it to pick it up. You can carry two things. They appear at the bottom of the screen.'],
+['Enter the breeding ground','Carry both lilies through the flower arch into the fenced circle.'],
+['Breed!','Click the Lily stone (the red lily icon), stand inside the ring, then click the glowing orb.'],
+['A baby is born!','A new lily appears in the garden, and the parents come back near the gate. Hybrids can breed again. Have fun!']];
+function tutStart(){if(cs.length<CAP-2){tutC=[mkc(0,'a',GX-35,GY+GR+32),mkc(0,'b',GX+35,GY+GR+32)];cs.push(...tutC)}tutStep=0;tutShow()}
+function tutShow(){const t=$('tut');if(tutStep<0){t.style.display='none';return}const n=TUT.length;
+ t.innerHTML=`<b>${TUT[tutStep][0]}</b><div>${TUT[tutStep][1]}</div><div class="tb"><small>Step ${tutStep+1}/${n}</small><button id="tn">${tutStep==n-1?'Finish':'Next'}</button><button id="tk">Skip</button></div>`;
+ t.style.display='block';$('tn').onclick=()=>{if(++tutStep>=n)tutEnd();else tutShow()};$('tk').onclick=tutEnd}
+function tutEnd(){tutStep=-1;tutShow();const d=$('disc');d.style.display='block';clearTimeout(dcT);dcT=setTimeout(()=>d.style.display='none',14000)}
+$('bT').onclick=tutStart;
+function arrow(x,y){const b=Math.sin(T0*6)*2;ctx.fillStyle='#ffd84a';ctx.strokeStyle='#3a2410';ctx.beginPath();ctx.moveTo(x-4,y+b-7);ctx.lineTo(x+4,y+b-7);ctx.lineTo(x,y+b);ctx.closePath();ctx.fill();ctx.stroke()}
+
+// welcome screen: 'See rules' reveals the rules page underneath; 'Play game' starts immediately (no tutorial)
+$('wRules').onclick=()=>{$('welcome').style.display='none';rules(true)};
+$('wPlay').onclick=()=>{$('welcome').style.display='none';started=true;startAudio();rules(false)};
+hud();rules(true);$('rules').style.display='none'; // game stays paused behind the welcome page
+[[2,'c',4],[3,'a',5],[0,'a',4],[4,'a',5],[5,'c',4],[1,'c',4]].forEach(([si,g,k])=>$('wchars').appendChild(portrait(mkc(si,g,0,0),k)));
+requestAnimationFrame(frame);
+</script></body></html>
