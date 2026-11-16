@@ -238,7 +238,7 @@ const SPD={b:34,l:15,t:48,f:0}; // animal speeds, all below WALK (cat flee = 58*
 const mkc=(si,g,x,y)=>({sp:si,g,k:SP[si].k,x,y,v:rnd()<.5?1:0,tx:x,ty:y,wt:rnd()*3,ph:rnd()*6,face:1,held:null,age:9,glow:0,mv:0,spd:SPD[SP[si].k]});
 for(let si=0;si<6;si++)for(const g of['a','b'])for(let i=0;i<PER;i++){const[x,y]=spot();cs.push(mkc(si,g,x,y))}
 const P={x:GX,y:GY+GR+50,face:1,mv:0};
-let hand=[null,null],sel=-1,signMsg='',signT=0,T0=0,paused=true,welOpen=true,started=false,zoom=1,sc=2,dpr=1,cam={x:GX-200,y:GY+60},vw=1,vh=1;
+let hand=[null,null],sel=-1,signMsg='',signT=0,T0=0,paused=true,welOpen=true,started=false,zoom=2.5,sc=2,dpr=1,cam={x:GX-200,y:GY+60},vw=1,vh=1;
 const keys={},joy={x:0,y:0};
 const IX=i=>GX-60+i*24,IY=GY+48; // positions of the six species stones
 
